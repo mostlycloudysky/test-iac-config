@@ -10,6 +10,7 @@ Globals:
     Tracing: Active
   Api:
     TracingEnabled: true
+# Define resources here
 Resources:
   ApiCertificate:
     Type: AWS::CertificateManager::Certificate
