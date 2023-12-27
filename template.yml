@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  iac-cost-estimator
+
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+    Tracing: Active
+  Api:
+    TracingEnabled: true
+Resources:
+  ApiCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: api.test.com
+      ValidationMethod: DNS
+
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors: "'*'"
+      Domain:
+        DomainName: api.test.com
+        CertificateArn: !Ref ApiCertificate
+        EndpointConfiguration: EDGE
+        Route53:
+          HostedZoneId: dsdsdsdsdsdsd
+  IacCostEstimatorFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: iac_cost_estimator/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+      - x86_64
+      Events:
+        HelloWorld:
+          Type: Api 
+          Properties:
+            Path: /
+            Method: post
+            RestApiId: 
+              Ref: ApiGatewayApi
+
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name:
+        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
+  ApplicationInsightsMonitoring:
+    Type: AWS::ApplicationInsights::Application
+    Properties:
+      ResourceGroupName:
+        Ref: ApplicationResourceGroup
+      AutoConfigurationEnabled: 'true'
+Outputs:
+  IacCostEstimatorApi:
+    Description: API Gateway endpoint URL for Prod stage for Hello World function
+    Value: https://test.com/
+  IacCostEstimatorFunction:
+    Description: Hello World Lambda Function ARN
+    Value: !GetAtt IacCostEstimatorFunction.Arn
+  IacCostEstimatorFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value: !GetAtt IacCostEstimatorFunctionRole.Arn
