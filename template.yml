@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  iac-cost-estimator cloudformation template
+  iac-cost-estimator
 
 Globals:
   Function:
@@ -10,28 +10,30 @@ Globals:
     Tracing: Active
   Api:
     TracingEnabled: true
-# Define resources here
 Resources:
   ApiCertificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
-      DomainName: api.test.com
+      DomainName: api.cost-estimator.cloudysky.link
       ValidationMethod: DNS
-# Add custom domain
+
   ApiGatewayApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: prod
       Cors: "'*'"
       Domain:
-        DomainName: api.test.com
+        DomainName: api.cost-estimator.cloudysky.link
         CertificateArn: !Ref ApiCertificate
         EndpointConfiguration: EDGE
         Route53:
-          HostedZoneId: dsdsdsdsdsdsd
+          HostedZoneId: Z01798246FUPJEQVEZR8
   IacCostEstimatorFunction:
     Type: AWS::Serverless::Function 
     Properties:
+      Environment:
+        Variables:
+          GITHUB_WEBHOOK_SECRET: !Sub "{{resolve:ssm:/github/webhook-secret:1}}"
       CodeUri: iac_cost_estimator/
       Handler: app.lambda_handler
       Runtime: python3.9
@@ -45,6 +47,7 @@ Resources:
             Method: post
             RestApiId: 
               Ref: ApiGatewayApi
+      
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
@@ -62,7 +65,7 @@ Resources:
 Outputs:
   IacCostEstimatorApi:
     Description: API Gateway endpoint URL for Prod stage for Hello World function
-    Value: https://test.com/
+    Value: https://api.cost-estimator.cloudysky.link/prod/
   IacCostEstimatorFunction:
     Description: Hello World Lambda Function ARN
     Value: !GetAtt IacCostEstimatorFunction.Arn
