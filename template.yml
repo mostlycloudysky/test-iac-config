@@ -16,7 +16,7 @@ Resources:
     Properties:
       DomainName: api.cost-estimator.cloudysky.link
       ValidationMethod: DNS
-
+# Add API Gateway resource
   ApiGatewayApi:
     Type: AWS::Serverless::Api
     Properties:
